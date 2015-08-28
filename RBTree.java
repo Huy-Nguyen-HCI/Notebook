@@ -91,26 +91,33 @@ public class RBTree {
 	 */
 	public void rotation(Node current){
 		//outside rotation
-		if ((current.value < current.p.value) == (current.p.value < current.p.p.value)){
-			if (current == current.p.left) rotateRight(current.p.p);
-			else rotateLeft(current.p.p);
-			//changeColorAfterRotationForInsertion(current.p.p, current.p);
+		Node grandparent = current.p.p, parent = current.p;
+		if ((current.value < parent.value) == (parent.value < grandparent.value)){
+			if (current == parent.left) {
+				rotateRight(grandparent);
+				changeColorAfterRotationForInsertion(grandparent, parent);
+			}
+			else {
+				rotateLeft(grandparent);
+				changeColorAfterRotationForInsertion(grandparent, parent);
+			}
+
 		}
 		//inside rotation
 		else {
 			//double rotation: rotate left first, then rotate right
-			if (current == current.p.right && current.p == current.p.p.left) {
-				rotateLeft(current.p);
-				//changeColorAfterRotationForInsertion(current.p, current);
-				rotateRight(current.p);
-				//changeColorAfterRotationForInsertion(current.p, current);
+			if (current == parent.right && parent == grandparent.left) {
+				rotateLeft(parent);
+				changeColorAfterRotationForInsertion(parent, parent.right);
+				rotateRight(parent);
+				changeColorAfterRotationForInsertion(current.p, parent.left);
 			}
 			//double rotation: rotate right first, then rotate left
 			else {
-				rotateRight(current.p);
-				//changeColorAfterRotationForInsertion(current.p, current);
-				rotateLeft(current.p);
-				//changeColorAfterRotationForInsertion(current.p, current);
+				rotateRight(parent);
+				changeColorAfterRotationForInsertion(parent, parent.left);
+				rotateLeft(parent);
+				changeColorAfterRotationForInsertion(parent, parent.right);
 			}
 		}
 	}
