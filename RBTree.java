@@ -37,6 +37,7 @@ public class RBTree {
 			if (getColor(current.left) == Node.RED && getColor(current.right) == Node.RED)
 				colorFlipAndRotate(current);
 			
+			// advance to the next node
 			if (value < current.value){
 				if (current.left == null) parent = current;
 				current = current.left;
@@ -65,9 +66,9 @@ public class RBTree {
 		}
 		
 		// if current.p is red, perform rotation
-		if (getColor(current.p) == Node.RED) rotation(current);
+		if (getColor(current.p) == Node.RED) rotation(current, true);
 		
-		// color the root Node.BLACK
+		// color the root black
 		root.color = Node.BLACK;
 	}
 	
@@ -76,48 +77,48 @@ public class RBTree {
 	 * Then perform rotation if a violation occurs.
 	 * @param current the current node
 	 */
-	public void colorFlipAndRotate(Node current){
+	private void colorFlipAndRotate(Node current){
 		current.color = Node.RED;
 		current.left.color = Node.BLACK;
 		current.right.color = Node.BLACK;
 		
 		// if current node's parent is Node.RED, do rotation
-		if (getColor(current.p) == Node.RED) rotation(current);
+		if (getColor(current.p) == Node.RED) rotation(current, true);
 	}
 	
 	/**
 	 * Perform rotation on the current node and its parent.
 	 * @param current the current node
+	 * @param insertion a boolean to indicate whether insertion is being performed or deletion is
 	 */
-	public void rotation(Node current){
-		//outside rotation
+	private void rotation(Node current, boolean insertion){
 		Node grandparent = current.p.p, parent = current.p;
+		//outside rotation
 		if ((current.value < parent.value) == (parent.value < grandparent.value)){
 			if (current == parent.left) {
 				rotateRight(grandparent);
-				changeColorAfterRotationForInsertion(grandparent, parent);
+				changeColorAfterRotation(grandparent, parent, insertion);
 			}
 			else {
 				rotateLeft(grandparent);
-				changeColorAfterRotationForInsertion(grandparent, parent);
+				changeColorAfterRotation(grandparent, parent, insertion);
 			}
-
 		}
 		//inside rotation
 		else {
 			//double rotation: rotate left first, then rotate right
 			if (current == parent.right && parent == grandparent.left) {
 				rotateLeft(parent);
-				changeColorAfterRotationForInsertion(parent, parent.right);
+				changeColorAfterRotation(parent, current, insertion);
 				rotateRight(parent);
-				changeColorAfterRotationForInsertion(current.p, parent.left);
+				changeColorAfterRotation(parent, current, insertion);
 			}
 			//double rotation: rotate right first, then rotate left
 			else {
 				rotateRight(parent);
-				changeColorAfterRotationForInsertion(parent, parent.left);
+				changeColorAfterRotation(parent, current, insertion);
 				rotateLeft(parent);
-				changeColorAfterRotationForInsertion(parent, parent.right);
+				changeColorAfterRotation(parent, current, insertion);
 			}
 		}
 	}
@@ -126,7 +127,7 @@ public class RBTree {
 	 * Perform right rotation on the parent and its left child, then change the color of the two.
 	 * @param parent the parent node
 	 */
-	public void rotateRight(Node parent) {
+	private void rotateRight(Node parent) {
         Node child = parent.left;
         parent.left = child.right;
         if (child.right != null) child.right.p = parent;
@@ -136,16 +137,13 @@ public class RBTree {
         else parent.p.right = child;
         child.right = parent;
         parent.p = child;
-        changeColorAfterRotationForInsertion(parent, child);
-        //child.color = child.right.color;
-
     }
 	
 	/**
 	 * Perform right rotation on the parent and its left child, then change the color of the two.
 	 * @param parent the parent node
 	 */
-	public void rotateLeft(Node parent) {
+	private void rotateLeft(Node parent) {
 		Node child = parent.right;
         parent.right = child.left;
         if (child.left != null) child.left.p = parent;
@@ -155,14 +153,31 @@ public class RBTree {
         else parent.p.left = child;
         child.left = parent;
         parent.p = child;
-        changeColorAfterRotationForInsertion(parent, child);
-        //child.color = child.left.color;
     }
 	
-	public void changeColorAfterRotationForInsertion(Node parent, Node child){
-		parent.color = Node.RED;
-		child.color = Node.BLACK;
+	/**
+	 * Change the appropriate nodes' color after rotation.
+	 * @param parent the parent node
+	 * @param child the child node
+	 * @param insertion a boolean to indicate whether insertion is being performed or deletion is
+	 */
+	private void changeColorAfterRotation(Node parent, Node child, boolean insertion){
+		// change color for insertion
+		if (insertion) {
+			parent.color = Node.RED;
+			child.color = Node.BLACK;
+		}
+		// change color for deletion
+		else {
+			Node sibling = (child == parent.left) ? parent.right : parent.left;
+			Node outerChild = (sibling == parent.left) ? sibling.left : sibling.right;
+			parent.color = Node.BLACK;
+			child.color = Node.RED;
+			sibling.color = Node.RED;
+			if (outerChild != null) outerChild.color = Node.BLACK;
+		}
 	}
+	
 	
 	/*****************************************************
 	 * 	============== DELETION TIPS ====================
@@ -172,38 +187,124 @@ public class RBTree {
 	 * 
 	 * Color the sentinel root red. This is to ensure that as X moves down, P will always be red.
 	 * 
+	 * If X is red:
+	 * 		If X is leaf, see if it is the one to be deleted.
+	 * 		If X is not leaf, continue further down to X's appropriate child.
+	 * 
 	 * If X is black and has 2 black children:
 	 * 		If T has 2 black children, color flip.
 	 * 		If T has an outer red child, single rotation.
 	 * 		If T has an inner red child, double rotation.
-	 * 		If T has 2 red children, single rotation.
 	 * 
-	 * If one of X's children is red:
+	 * If X is black and one of X's children is red:
 	 * 		Go down one level (so new X is old X's child, new P is old X, new T is old X's other child)
-	 * 		If new X is red:
-	 * 			If X is leaf, see if it is the one to be deleted
-	 * 			If X is not leaf, continue further down to X's appropriate child.
 	 * 			
-	 * 
-	 * 
 	 *****************************************************/
 	
 	public void delete(int value){
 		Node current = root;
-		Node parent;
+		// the sentinel root
+		Node sentinel = new Node(Integer.MIN_VALUE);
+		if (root != null) {
+			root.p = sentinel;
+			sentinel.right = root;
+		}
+		Node parent = current.p;
+		Node nodeToDelete = null;
 		
-		while (current != null && value != current.value){
+		while (!current.isLeaf()){
+			modifyTree(current);
 			
+			if (value == current.value){
+				Node successor = findSuccessor(current);
+				current.value = successor.value;
+				if (successor == successor.p.left){
+					successor.p.left = null;
+				} else {
+					successor.p.right = null;
+				}
+				break;
+			}
+			// Continue further down to the appropriate child
+			else current = (value < current.value) ? current.left : current.right;
+		}
+		
+		// color the root black
+		if (root != null) root.color = Node.BLACK;
+	}
+	
+	private void modifyTree(Node current) {
+		// If current is black and has 2 black children
+		if (getColor(current) == Node.BLACK && getColor(current.left) == Node.BLACK
+				&& getColor(current.right) == Node.BLACK) 
+		{
+			Node sibling = (current == current.p.left) ? current.p.right : current.p.left;
+			Node outerChild = null, innerChild = null;
+			
+			if (sibling != null) {
+				outerChild = (sibling == sibling.p.left) ? sibling.left : sibling.right;
+				innerChild = (sibling == sibling.p.left) ? sibling.right : sibling.left;
+			}
+
+			// If sibling has 2 black children, color flip
+			boolean siblingHasTwoBlackChildren = sibling != null && getColor(sibling.left) == Node.BLACK
+					&& getColor(sibling.right) == Node.BLACK;
+			if (sibling == null || siblingHasTwoBlackChildren) {
+				// color flip
+				current.p.color = Node.BLACK;
+				current.color = Node.RED;
+				if (sibling != null)
+					sibling.color = Node.RED;
+			}
+
+			// If sibling has an outer red child
+			else if (getColor(outerChild) == Node.RED) {
+				if (outerChild == sibling.left)
+					rotateRight(sibling.p);
+				else
+					rotateLeft(sibling.p);
+				changeColorAfterRotation(current.p, current, false);
+			}
+
+			// If sibling has an inner red child
+			else if (getColor(innerChild) == Node.RED) {
+				if (innerChild == sibling.left) {
+					rotateRight(sibling);
+					changeColorAfterRotation(sibling, innerChild, false);
+					rotateLeft(sibling.p);
+					changeColorAfterRotation(sibling.p, innerChild, false);
+				} else if (innerChild == sibling.right) {
+					rotateLeft(sibling);
+					changeColorAfterRotation(sibling, innerChild, false);
+					rotateRight(sibling);
+					changeColorAfterRotation(sibling.p, innerChild, false);
+				}
+			}
 		}
 	}
 	
-	
+	private Node findSuccessor(Node node){
+		Node successor = node.right;
+		
+		if (successor == null){
+			if (node.left != null) return node.left;
+			return node;
+		}
+		else {
+			while (!successor.isLeaf()) {
+				modifyTree(successor);
+				successor = successor.left;
+			}
+			return successor;
+		}
+	}
 	/**
 	 * Get the color of the specified node. 
 	 * @param node the specified node
 	 * @return the node's color or <tt>BLACK</tt> if the node is <tt>NULL</tt>.
 	 */
-	public boolean getColor(Node node){
+	private boolean getColor(Node node){
+		// null leaf node is black
 		return (node == null) ? Node.BLACK : node.color();
 	}
 	
@@ -213,6 +314,15 @@ public class RBTree {
 	 */
 	public Node root() {
 		return this.root;
+	}
+	
+	public static void main(String[] args){
+		RBTree tree = new RBTree();
+		tree.insert(0);
+		tree.root.traversal();
+		tree.delete(0);
+		tree.root.traversal();
+	
 	}
 	
 	

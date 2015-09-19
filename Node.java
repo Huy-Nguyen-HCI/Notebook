@@ -40,6 +40,20 @@ public class Node {
 	public int value() {
 		return this.value;
 	}
+	
+	public boolean isLeaf() {
+		return this.left == null && this.right == null;
+	}
+	
+	public String toString(){
+		return "" + this.value + " " + (this.color ? "RED" : "BLACK") + 
+				" parent: " + ((this.p == null) ? "NULL" : this.p.value) ;
+	}
+	public void traversal(){
+		System.out.println(this);
+		if (this.left != null) this.left.traversal();
+		if (this.right != null) this.right.traversal();
+	}
 
 	// Visitor interface (for visual presentation only)
 	public interface Visitor {

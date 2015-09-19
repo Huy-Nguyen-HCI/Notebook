@@ -94,10 +94,11 @@ public class RedBlackTreeViewer extends JFrame {
             protected void execute(String value) {
                 messageLine.setText("The value \"" + value + "\" is " +
                     (tree.contains(value) ? "" : "not ") + "found");}};
+        */            
         new Operation("Remove") {
             protected void execute(String value) {
-                tree.remove(value);}};
-        */
+                tree.delete(Integer.parseInt(value));}};
+        
     }
 
     /**
