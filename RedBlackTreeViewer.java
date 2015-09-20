@@ -98,6 +98,11 @@ public class RedBlackTreeViewer extends JFrame {
         new Operation("Remove") {
             protected void execute(String value) {
                 tree.delete(Integer.parseInt(value));}};
+		new Operation("Remove All") {
+			protected void execute(String value) {
+				tree.deleteAll();
+			}
+		};
         
     }
 
