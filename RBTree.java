@@ -220,11 +220,6 @@ public class RBTree {
 		while (!current.isLeaf()){
 			current = (value < current.value) ? current.left : current.right;
 			
-			// if current.p is black and current is black, perform rotation
-			if (getColor(current.p) == Node.BLACK && getColor(current) == Node.BLACK) {
-				rotateWithBlackParent(current);
-			}
-			
 			// Modify the tree based on the current node
 			modifyTree(current);
 			
@@ -261,17 +256,9 @@ public class RBTree {
 				else {
 					// find the leftmost node of the right subtree
 					current = nodeToDelete.right;
-					// if current.p is black and current is black, perform rotation
-					if (getColor(current.p) == Node.BLACK && getColor(current) == Node.BLACK) {
-						rotateWithBlackParent(current);
-					}
 					modifyTree(current);
 					while (current.left != null){
 						current = current.left;
-						// if current.p is black and current is black, perform rotation
-						if (getColor(current.p) == Node.BLACK && getColor(current) == Node.BLACK) {
-							rotateWithBlackParent(current);
-						}
 						modifyTree(current);
 					}
 					
@@ -305,6 +292,10 @@ public class RBTree {
 	 * @param current the current node.
 	 */
 	private void modifyTree(Node current) {
+		// if current.p is black and current is black, perform rotation
+		if (getColor(current.p) == Node.BLACK && getColor(current) == Node.BLACK) {
+			rotateWithBlackParent(current);
+		}
 		// If current is black and has 2 black children
 		if (getColor(current) == Node.BLACK &&  
 				getColor(current.left) == Node.BLACK && 
