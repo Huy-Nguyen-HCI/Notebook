@@ -215,26 +215,14 @@ public class RBTree {
 		Node current = sentinel;
 		current.right = root;
 		root.p = sentinel;
-		Node parent = null, grandparent = null;
 		Node nodeToDelete = null;
 		
 		while (!current.isLeaf()){
-			grandparent = parent;
-			parent = current;
 			current = (value < current.value) ? current.left : current.right;
 			
 			// if current.p is black and current is black, perform rotation
 			if (getColor(current.p) == Node.BLACK && getColor(current) == Node.BLACK) {
-				// rotate sibling and parent
-				if (current == current.p.left) {
-					current.p.color = Node.RED;
-					current.p.right.color = Node.BLACK;
-					rotateLeft(current.p);
-				} else {
-					current.p.color = Node.RED;
-					current.p.left.color = Node.BLACK;
-					rotateRight(current.p);
-				}
+				rotateWithBlackParent(current);
 			}
 			
 			// Modify the tree based on the current node
@@ -256,8 +244,8 @@ public class RBTree {
 				// remove all pointers to the leaf node
 				if (root == nodeToDelete) root = null;
 				else {
-					if (nodeToDelete == parent.left) parent.left = null;
-					else parent.right = null;
+					if (nodeToDelete == nodeToDelete.p.left) nodeToDelete.p.left = null;
+					else nodeToDelete.p.right = null;
 				}
 			}
 			
@@ -267,25 +255,36 @@ public class RBTree {
 					// successor is nodeToDelete.left
 					nodeToDelete.value = nodeToDelete.left.value;
 					nodeToDelete.left = nodeToDelete.left.left;
+					if (nodeToDelete.left != null && nodeToDelete.left.left != null)
+						nodeToDelete.left.left.p = nodeToDelete;
 				}
 				else {
 					// find the leftmost node of the right subtree
 					current = nodeToDelete.right;
-					grandparent = parent;
-					parent = nodeToDelete;
+					// if current.p is black and current is black, perform rotation
+					if (getColor(current.p) == Node.BLACK && getColor(current) == Node.BLACK) {
+						rotateWithBlackParent(current);
+					}
 					modifyTree(current);
 					while (current.left != null){
-						grandparent = parent;
-						parent = current;
 						current = current.left;
+						// if current.p is black and current is black, perform rotation
+						if (getColor(current.p) == Node.BLACK && getColor(current) == Node.BLACK) {
+							rotateWithBlackParent(current);
+						}
 						modifyTree(current);
 					}
 					
 					// current.left is now null
 					nodeToDelete.value = current.value;
-					if (current == current.p.left) current.p.left = current.right;			
-					else current.p.right = current.right;
-					if (current.right != null) current.right.color = current.color;
+					if (current == current.p.left)
+						current.p.left = current.right;
+					else 
+						current.p.right = current.right;
+					if (current.right != null){
+						current.right.p = current.p;
+						current.right.color = current.color;
+					}
 
 				}			
 			}
@@ -294,13 +293,17 @@ public class RBTree {
 		// if nodeToDelete is null, print error message
 		else System.out.println("Cannot find node to delete");
 		
-		// color the root black
+		// color the root black and delete sentinel root
 		if (root != null) {
 			root.color = Node.BLACK;
 			root.p = null;
 		}
 	}
 	
+	/**
+	 * Modify the current tree based on the current node (used in deletion).
+	 * @param current the current node.
+	 */
 	private void modifyTree(Node current) {
 		// If current is black and has 2 black children
 		if (getColor(current) == Node.BLACK &&  
@@ -352,13 +355,29 @@ public class RBTree {
 		}
 	}
 	
+	private void rotateWithBlackParent(Node current){
+		// rotate sibling and parent
+		if (current == current.p.left) {
+			current.p.color = Node.RED;
+			current.p.right.color = Node.BLACK;
+			rotateLeft(current.p);
+		} else {
+			current.p.color = Node.RED;
+			current.p.left.color = Node.BLACK;
+			rotateRight(current.p);
+		}
+	}
+	
+	/**
+	 * Delete all nodes in the tree.
+	 */
 	public void deleteAll(){
 		root = null;
 	}
 	
 	/**
 	 * Get the color of the specified node. 
-	 * @param node the specified node
+	 * @param node the specified node.
 	 * @return the node's color or <tt>BLACK</tt> if the node is <tt>NULL</tt>.
 	 */
 	private boolean getColor(Node node){
@@ -368,12 +387,16 @@ public class RBTree {
 	
 	/**
 	 * Get the root of the tree.
-	 * @return the tree's root
+	 * @return the tree's root.
 	 */
 	public Node root() {
 		return this.root;
 	}
 	
+	/**
+	 * Insert all elements in an array to the tree.
+	 * @param a the array that contains all the elements to be inserted.
+	 */
 	private void insertElements(int[] a){
 		for (int i : a) insert(i);
 	}
