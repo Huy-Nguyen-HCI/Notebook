@@ -1,3 +1,6 @@
+import java.util.Random;
+import java.util.HashSet;
+
 /**
  * The red black tree class
  * @author HuyNguyen
@@ -109,15 +112,15 @@ public class RBTree {
 			if (current == parent.right && parent == grandparent.left) {
 				rotateLeft(parent);
 				changeColor(parent, current, insertion);
-				rotateRight(parent);
-				changeColor(parent, current, insertion);
+				rotateRight(grandparent);
+				changeColor(grandparent, current, insertion);
 			}
 			//double rotation: rotate right first, then rotate left
 			else {
 				rotateRight(parent);
 				changeColor(parent, current, insertion);
-				rotateLeft(parent);
-				changeColor(parent, current, insertion);
+				rotateLeft(grandparent);
+				changeColor(grandparent, current, insertion);
 			}
 		}
 	}
@@ -205,6 +208,10 @@ public class RBTree {
 	 * 			
 	 *****************************************************/
 	
+	/**
+	 * Delete the node with the specified value from the tree.
+	 * @param value the value to be deleted.
+	 */
 	public void delete(int value){
 		// the sentinel root
 		final Node sentinel = new Node(Integer.MIN_VALUE);
@@ -278,7 +285,7 @@ public class RBTree {
 		}
 		
 		// if nodeToDelete is null, print error message
-		else System.out.println("Cannot find node to delete");
+		else System.out.println("Cannot find node with value " + value + " to delete");
 		
 		// color the root black and delete sentinel root
 		if (root != null) {
@@ -346,6 +353,10 @@ public class RBTree {
 		}
 	}
 	
+	/**
+	 * Perform rotation on the tree in case current and current.p are black.
+	 * @param current the current node.
+	 */
 	private void rotateWithBlackParent(Node current){
 		// rotate sibling and parent
 		if (current == current.p.left) {
@@ -392,12 +403,23 @@ public class RBTree {
 		for (int i : a) insert(i);
 	}
 	
-	public static void main(String[] args){
+	static final int length = 10;
+	
+	public static void testTree(){
 		RBTree tree = new RBTree();
-		tree.insertElements(new int[]{1,2,3,4,5});
-		tree.delete(2);
-		tree.root.traversal();
+		HashSet<Integer> set = new HashSet<Integer>();
+		Random random = new Random();
+		try{
+			for (int i = 0 ; i < length; i++)
+				set.add(random.nextInt(100));
+			for (int x : set)
+				tree.insert(x);
+			for (int x : set)
+				tree.delete(x);
+		} catch (Exception e){
+			System.out.println("Exception with set " + set + "\n ******* \n");
+		} 
+		System.out.println("No exception with Set: " + set + "\n ******* \n");
 	}
-	
-	
+
 }
