@@ -1,0 +1,706 @@
+\documentclass[12pt]{article}
+\usepackage{etex}
+\usepackage{amsmath,amsxtra,amssymb,latexsym,amscd,amsthm}
+\usepackage{indentfirst}
+\usepackage{epigraph}
+\usepackage{tabvar}
+\usepackage{ifpdf}
+\usepackage[english]{babel}
+\usepackage[mathscr]{eucal}
+\usepackage{graphics, graphicx}
+\usepackage{pstricks,pst-node,pst-tree}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{fancybox}
+\usepackage[colorlinks=true]{hyperref}  
+\usepackage[a4paper,left=15mm,right=10mm,top=15mm,bottom=15mm]{geometry}
+\renewcommand{\baselinestretch}{1.5}
+\usepackage{fancyhdr}
+\usepackage{pifont}
+\usepackage[mathscr]{eucal}
+\usepackage{wrapfig}
+\usepackage{tikz}
+\usetikzlibrary{arrows}
+\renewcommand{\qedsymbol}{\ding{114}}
+\newcommand{\h}{$\bigotimes$ }
+\newcommand{\tl}{$\bigodot$ }
+\newcommand{\het}{ \begin{flushright} \ding{114} \end{flushright}}
+
+\def\lc{\left\lceil}   
+\def\rc{\right\rceil}
+\newcommand{\td}{$ \Leftrightarrow $ }
+\newcommand{\sr}{\Rightarrow }
+\newcommand{\sao}{$\divideontimes$ }
+\newcommand{\lf}{\left (}
+\newcommand{\ri}{\right )}
+\newcommand{\co}{\texttt}
+\usepackage{listings}
+\usepackage{color}
+\newcommand{\bls}{\begin{lstlisting}}
+\newcommand{\els}{\end{lstlisting}}
+
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{
+  backgroundcolor = \color{gray},
+  frame=tb,
+  language=[Objective]C,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  otherkeywords = {obj, SEL, @, BOOL},
+  commentstyle=\color{white},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\begin{document}
+\tableofcontents
+\newpage
+
+\section{Introspections}
+\begin{itemize}
+\item \co{isKindOfClass:} returns whether an object is that kind of class (inheritance included) 
+\item \co{isMemberOfClass:} returns whether an object is that kind of class (no inheritance) 
+\item \co{respondsToSelector:} returns whether an object responds to a given method
+\end{itemize}
+
+\subsection{Selectors}
+
+\begin{lstlisting}
+// Using the performSelector: or performSelector:withObject: methods in NSObject
+[obj performSelector:shootSelector];
+[obj performSelector:shootAtSelector withObject:coordinate];
+// Using makeObjectsPerformSelector: methods in NSArray
+[array makeObjectsPerformSelector:shootSelector]; // cool, huh
+[array makeObjectsPerformSelector:shootAtSelector withObject:target]; // target is an id
+// In UIButton, 
+- (void)addTarget:(id)anObject action:(SEL)action ...; 
+[button addTarget:self action:@selector(digitPressed:) ...];
+\end{lstlisting}
+
+\section{\co{UIFonts}}
+It is best to get a UIFont by asking for the preferred font for a given text style ... 
+
+\begin{lstlisting} 
+UIFont *font = [UIFont preferredFontForTextStyle:UIFontTextStyleBody]; 
+\end{lstlisting}
+
+Some other styles (see \co{UIFontDescriptor} documentation for even more styles) ... 
+
+\co{UIFontTextStyleHeadline, UIFontTextStyleCaption1, UIFontTextStyleFootnote,} etc.
+
+\section{\co{NSAttributedString}}
+You can ask an \co{NSAttributedString} all about the attributes at a given location in the string.
+\begin{lstlisting}
+(NSDictionary *)attributesAtIndex: (NSUInteger)indexeffectiveRange:(NSRangePointer)range; 
+\end{lstlisting}
+
+Sample code:
+
+\begin{lstlisting}
+UIColor *yellow = [UIColor yellowColor];
+UIColor *transparentYellow = [yellow colorWithAlphaComponent:0.3];
+ @{ NSFontAttributeName :
+   [UIFont preferredFontWithTextStyle:UIFontTextStyleHeadline],
+   NSForegroundColorAttributeName : [UIColor greenColor],
+   NSStrokeWidthAttributeName : @-5,
+   NSStrokeColorAttributeName : [UIColor redColor],
+   NSUnderlineStyleAttributeName : @(NSUnderlineStyleNone),
+   NSBackgroundColorAttributeName : transparentYellow }
+//You could use transparent colors in other attributes as well.
+\end{lstlisting}
+
+The range is returned and it lets you know for how many characters the attributes are identical.
+
+\section{\co{UITextView}}
+Obtain the NSMutableAttributedString representing the text in the UITextView using ...
+
+\begin{lstlisting}
+@property (nonatomic, readonly) NSTextStorage *textStorage;
+\end{lstlisting}
+
+\co{NSTextStorage} is a subclass of \co{NSMutableAttributedString}.
+
+There is also a property that applies a font to the entire UITextView: 
+
+\begin{lstlisting}
+@property (nonatomic, strong) UIFont *font;}
+\end{lstlisting}
+
+\newpage
+
+\section{View Controller Lifecycle}
+\subsection{\co{viewDidLoad}}
+After instantiation and outlet-setting, viewDidLoad is called This is an exceptionally good place to put a lot of setup code.
+\begin{lstlisting}
+- (void)viewDidLoad
+{
+	[super viewDidLoad]; // always let super have a chance in lifecycle methods
+	// do some setup of my MVC
+}
+\end{lstlisting}
+But be careful because the geometry of your view (its bounds) is not set yet!
+
+At this point, you can't be sure you're on an iPhone 5-sized screen or an iPad or . So do not initialize things that are geometry-dependent here.
+
+\subsection{\co{viewWillAppear}}
+Just before the view appears on screen, you get notified (argument is just whether you are appearing instantly or over time via animation)
+\begin{lstlisting}
+- (void)viewWillAppear:(BOOL)animated;
+\end{lstlisting}
+Your view will only get loaded once, but it might appear and disappear a lot. So don't put something in this method that really wants to be in \co{viewDidLoad}. Otherwise, you might be doing something over and over unnecessarily. Do something here if things you display are changing while your MVC is off-screen.
+
+\subsection{\co{viewWillDisappear}}
+And you get notified when you will disappear off screen too This is where you put "remember what's going on" and cleanup code.
+\begin{lstlisting}
+- (void)viewWillDisappear:(BOOL)animated
+{
+	[super viewWillDisappear:animated]; // call super in all the viewWill/Did... methods // let's be nice to the user and remember the scroll position they were at ...
+	[self rememberScrollPosition]; // we'll have to implement this, of course // do some other clean up now that we've been removed from the screen
+	[self saveDataToPermanentStore]; // maybe do in did instead
+	// but be careful not to do anything time-consuming here, or app will be sluggish
+	// maybe even kick off a thread to do what needs doing here (again, we'll cover threads later)
+}
+\end{lstlisting}
+
+\subsection{\co{awakeFromNib}}
+Anything that would go in your Controller's init method would have to go in awakeFromNib too (because init methods are not called on objects that come out of a storyboard).
+
+\begin{lstlisting}
+- (void)setup{}; //do something which can't wait until viewDidLoad
+- (void)awakeFromNib { [self setup]; }
+\end{lstlisting}
+
+\section{\co{NSNotification}}
+Get the default notification center via \co{[NSNotificationCenter defaultCenter]}. Then send it the following message if you want to listen to a radio station:
+\begin{lstlisting}
+- (void)addObserver:(id)observer // you (the object to get notified)
+		  		selector:(SEL)methodToInvokeIfSomethingHappens
+		      		name:(NSString *)name // name of station (a constant somewhere)
+		     		object:(id)sender; // whose changes youre interested in (nil is anyones)
+\end{lstlisting}
+You will then be notified when there are broadcasts
+\begin{lstlisting}
+- (void)methodToInvokeIfSomethingHappens:(NSNotification *)notification
+{
+	notification.name // the name passed above
+	notification.object // the object sending you the notification notification.userInfo // notification-specific information about what happened
+}
+\end{lstlisting}
+Be sure to tune out when done listening
+\begin{lstlisting}
+[center removeObserver:self];
+\end{lstlisting}
+or
+\begin{lstlisting}
+[center removeObserver:self name:UIContentSizeCategoryDidChangeNotification object:nil];
+\end{lstlisting}
+Failure to remove yourself can sometimes result in crashers.
+This is because the NSNotificationCenter keeps an unsafe retained pointer to you.
+A good place to remove yourself is when your MVCs View goes off screen.
+
+\section{\co{UINavigationController}}
+Usually because the user presses the back button (shown on the previous slide).
+But it can happen programmatically as well with this UINavigationController instance method 
+\begin{lstlisting}
+- (void)popViewControllerAnimated:(BOOL)animated;
+\end{lstlisting}
+This does the same thing as clicking the back button.
+Somewhat rare to call this method. Usually we want the user in control of navigating the stack. But you might do it if some action the user takes in a view makes it irrelevant to be on screen.
+
+Sometimes it makes sense to segue directly when a button is touched, but not always.
+
+For example, what if you want to conditionally segue
+
+You can programmatically invoke segues using this method in UIViewController:
+
+\begin{lstlisting}
+- (void)performSegueWithIdentifier:(NSString *)segueId sender:(id)sender;
+\end{lstlisting}
+
+The segueId is set in the attributes inspector in Xcode (seen on previous slide).
+
+The sender is the initiator of the segue (a UIButton or yourself (UIViewController) usually).
+
+The segue offers the source VC the opportunity to prepare the new VC to come on screen. This method is sent to the VC that contains the button that initiated the segue:
+\begin{lstlisting}
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender 
+{
+    if ([segue.identifier isEqualToString:@DoSomething]) {
+        if ([segue.destinationViewController isKindOfClass:[DoSomethingVC class]]) {
+            DoSomethingVC *doVC = (DoSomethingVC *)segue.destinationViewController;
+            doVC.neededInfo = ...; 
+        }
+    } 
+}
+\end{lstlisting}
+
+Sometimes (very rarely) you might want to put a VC on screen yourself (i.e., not use a segue). 
+\begin{lstlisting}
+NSString *vcid = @something;
+UIViewController *controller = [storyboard instantiateViewControllerWithIdentifier:vcid]; 
+\end{lstlisting}
+Usually you get the storyboard above from self.storyboard in an existing \co{UIViewController.} The identifier vcid must match a string you set in Xcode to identify a \co{UIViewController} there.
+
+Example: creating a \co{UIViewController} in a target/action method. Lay out the View for a \co{DoitViewController} in your storyboard and name it doit1.
+\begin{lstlisting}
+- (IBAction)doit
+{
+	//Note use of self.navigationController again.
+	 DoitViewController *doit = [self.storyboard instantiateViewControllerWithIdentifier:@doit1];
+    	doit.infoDoitNeeds = self.info;
+    	[self.navigationController pushViewController:doit animated:YES];
+}
+\end{lstlisting}
+
+
+\section{Views}
+The hierarchy is most often constructed in Xcode graphically Even custom views are often added to the view hierarchy using Xcode.
+
+But it can be done in code as well
+\begin{lstlisting}
+- (void)addSubview:(UIView *)aView; // sent to aViews (soon to be) superview 
+- (void)removeFromSuperview; // sent to the view that is being removed
+\end{lstlisting}
+The top of this hierarchy for your MVC is
+\begin{lstlisting}
+UIViewControllers @property (strong, nonatomic) UIView *view
+\end{lstlisting}
+This is the view whose bounds will be changed when autorotation happens.
+This is the view you would programmatically add subviews to.
+All your MVCs Views UIViews eventually have this view as their parent (its at the top). It is automatically hooked up for you when you drag out a View Controller in Xcode.
+
+\subsection{Initializing a \co{UIVIew}}
+You will also want to set up stuff in awakeFromNib
+This is because initWithFrame: is NOT called for a UIView coming out of a storyboard!
+But awakeFromNib is. Same as we talked about with UIViewController. Its called awakeFromNib for historical reasons.
+Typical code ...
+\begin{lstlisting}
+- (void)setup { ... }
+- (void)awakeFromNib { [self setup]; } - (id)initWithFrame:(CGRect)aRect
+{
+    self = [super initWithFrame:aRect];
+    [self setup];
+    return self;
+}
+\end{lstlisting}
+
+\subsection{View coordinates}
+Use \co{CGPointMake, CGSizeMake, CGRectMake} to create a new point / size / rectangle
+Views have 3 properties related to their location and size 
+\begin{lstlisting}
+@property CGRect bounds; // your views internal drawing spaces origin and size
+\end{lstlisting}
+The bounds property is what you use inside your views own implementation.
+It is up to your implementation as to how to interpret the meaning of bounds.origin.
+\begin{lstlisting}
+@property CGPoint center; // the center of your view in your superviews coordinate space 
+@property CGRect frame; // a rectangle in your superviews coordinate space which entirely contains your views bounds.size
+\end{lstlisting}
+Use frame and center to position the view in the hierarchy.
+These are used by superviews, never inside your UIView subclasss implementation.
+
+How do you create a UIView in code (i.e. not in Xcode)
+Just use alloc and initWithFrame: (UIViews designated initializer). Can also use init (frame will be CGRectZero).
+\begin{lstlisting}
+CGRect labelRect = CGRectMake(20, 20, 50, 30);
+UILabel *label = [[UILabel alloc] initWithFrame:labelRect]; label.text = @Hello!;
+[self.view addSubview:label]; // Note self.view!
+\end{lstlisting}
+
+Drawing is easy ... create a \co{UIView} subclass and override 1 method 
+\begin{lstlisting}
+- (void)drawRect:(CGRect)aRect;
+\end{lstlisting}
+You can optimize by not drawing outside of aRect if you want (but not required). 
+
+NEVER call drawRect:!! EVER! Or else!
+Instead, let iOS know that your views visual is out of date with one of these UIView methods:
+\begin{lstlisting}
+- (void)setNeedsDisplay;
+- (void)setNeedsDisplayInRect:(CGRect)aRect;
+\end{lstlisting}
+It will then set everything up and call drawRect: for you at an appropriate time.
+Obviously, the second version will call your \co{drawRect:} with only rectangles that need updates.
+
+\subsection{Context}
+\co{UIBezierPath} draws into the current context, so you dont need to get it if using that.
+But if youre calling Core Graphics C functions directly, youll need it (its an argument to them). Call the following C function inside your drawRect: method to get the current graphics context: 
+\begin{lstlisting} 
+CGContextRef context = UIGraphicsGetCurrentContext();
+\end{lstlisting}
+
+Create a path with \co{UIBezierPath}:
+\begin{itemize}
+	\item Begin the path.
+		\begin{lstlisting}
+*path = [[UIBezierPath alloc] init];
+		\end{lstlisting}
+	\item Move around, add lines or arcs to the path
+	\begin{lstlisting}
+[path moveToPoint:CGPointMake(75, 10)];
+[path addLineToPoint:CGPointMake(160, 150)];
+[path addLineToPoint:CGPointMake(10, 150]);
+	\end{lstlisting}
+	\item Close the path (connects the last point back to the first) 
+	\begin{lstlisting}
+	[path closePath]; 
+	// not strictly required but triangle wont have all 3 sides otherwise
+	\end{lstlisting}
+	\item Now that the path has been created, we can stroke/fill it. Actually, nothing has been drawn yet, weve just created the UIBezierPath. 
+	\begin{lstlisting}
+	[[UIColor greenColor] setFill];
+	[[UIColor redColor] setStroke];
+	[path fill]; 
+	[path stroke];
+	\end{lstlisting}
+\end{itemize}
+
+And draw rounded rects, ovals, etc.
+\begin{lstlisting}
+UIBezierPath *roundedRect = [UIBezierPath bezierPathWithRoundedRect:(CGRect)bounds cornerRadius:(CGFloat)radius];
+\end{lstlisting}
+Note: the casts in the arguments are just to let you know the types (i.e. theyre not required).
+\begin{lstlisting}
+UIBezierPath *oval = [UIBezierPath bezierPathWithOvalInRect:(CGRect)bounds]; [roundedRect stroke];
+[oval fill];
+\end{lstlisting}
+
+\co{UIView} also has a \co{backgroundColor} property which can be set to transparent values. Be sure to set \co{@property BOOL opaque} to \co{NO} in a view which is partially transparent.
+If you dont, results are unpredictable (this is a performance optimization property, by the way).
+\co{UIViews @property CGFloat alpha} can make the entire view partially transparent.
+(you might use this to your advantage in your homework to show a disabled custom view)
+
+Also, you can hide a view completely by setting hidden property 
+\begin{lstlisting}
+@property (nonatomic) BOOL hidden;
+myView.hidden = YES; // view will not be on screen and will not handle events
+\end{lstlisting}
+
+What if you wanted to have a utility method that draws something
+You dont want that utility method to mess up the graphics state of the calling method. Use save and restore context functions.
+\begin{lstlisting}
+- (void)drawGreenCircle:(CGContextRef)ctxt {
+    CGContextSaveGState(ctxt);
+    [[UIColor greenColor] setFill];
+// draw my circle
+    CGContextRestoreGState(ctxt);
+}
+- (void)drawRect:(CGRect)aRect {
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    [[UIColor redColor] setFill];
+// do some stuff
+    [self drawGreenCircle:context];
+// do more stuff and expect fill color to be red
+}
+\end{lstlisting}
+
+\section{\co{UIImageView}}
+Create a UIImage object from a file in your Resources folder
+\begin{lstlisting}
+UIImage *image = [UIImage imageNamed:@foo.jpg]; 
+\end{lstlisting}
+
+Now blast the UIImages bits into the current graphics context
+\begin{lstlisting}
+UIImage *image = ...;
+[image drawAtPoint:(CGPoint)p];
+[image drawInRect:(CGRect)r];
+[image drawAsPatternInRect:(CGRect)patRect;
+// p is upper left corner of the image // scales the image to fit in r
+// tiles the image into patRect
+Aside: You can get a PNG or JPG data representation of UIImage NSData *jpgData = UIImageJPEGRepresentation((UIImage *)myImage, (CGFloat)quality);
+NSData *pngData = UIImagePNGRepresentation((UIImage *)myImage);
+\end{lstlisting}
+
+By default, when your UIViews bounds change, there is no redraw Instead, the bits of your view will be stretched or squished or moved.
+
+Often this is not what you want ... Use \co{UIViewContentModeRedraw}.
+
+Default is UIViewContentModeScaleToFill (stretch the bits to fill the bounds)
+
+\section{\co{UIGestureRecognizer}}
+Adding a gesture recognizer to a UIView from a Controller 
+\begin{lstlisting}
+- (void)setPannableView:(UIView *)pannableView // maybe this is a setter in a Controller
+{
+             _pannableView = pannableView;
+             UIPanGestureRecognizer *pangr =
+                 [[UIPanGestureRecognizer alloc] initWithTarget:pannableView action:@selector(pan:)];
+             [pannableView addGestureRecognizer:pangr]; // remember to do this
+}
+\end{lstlisting}
+Note that we are specifying the view itself as the target to handle a pan gesture when it is recognized. Thus the view will be both the recognizer and the handler of the gesture.
+The UIView does not have to handle the gesture. It could be, for example, the Controller that handles it. The View would generally handle gestures to modify how the View is drawn.
+The Controller would have to handle gestures that modified the Model.
+
+\section{Protocols}
+\subsection{Declaring a @protocol}
+Looks a lot like @interface (but theres no corresponding @implementation) 
+\begin{lstlisting}
+@protocol Foo
+- (void)someMethod;
+- (void)methodWithArgument:(BOOL)argument;
+@property (readonly) int readonlyProperty; // getter (only) is part of this protocol
+@property NSString *readwriteProperty; // getter and setter are both in the protocol - (int)methodThatReturnsSomething;
+@end
+\end{lstlisting}
+All of these methods are required. Anyone implementing this protocol must implement them all.
+Add keyword @optional / @required to state that the rest of the protocal declaration is optional / required.
+\begin{lstlisting}
+@protocol Foo <Xyzzy>
+\end{lstlisting}
+Now you can only say you implement Foo if you also implement the methods in Xyzzy protocol.
+
+\subsection{Where do @protocol declarations go}
+In header files.
+
+It can go in its own, dedicated header file.
+
+Or it can go in the header file of the class that is going to require its use. Which to do
+
+If the @protocol is only required by a particular classs API, then put it there,
+else put it in its own header file.
+
+Example: The UIScrollViewDelegate protocol is defined in UIScrollView.h.
+
+\subsection{Examples of protocol}
+\subsubsection{\co{ChooseYesOrNoView.h}}
+\begin{lstlisting}
+ChooseYesOrNoView.h
+#import 
+
+@protocol ChooseYesOrNoViewDelegate <NSObject>
+- (void) chooseYesOrNoResponse: (BOOL) response;
+@end
+
+@interface ChooseYesOrNoView : UIView
+
+@property (nonatomic, weak) id delegate;
+
+- (ChooseYesOrNoView *) display;
+
+@end
+
+\end{lstlisting}
+
+\subsubsection{\co{ChooseYesOrNoView.m}}
+\begin{lstlisting}
+ChooseYesOrNoView.m
+
+- (id)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        // Initialization code
+    }
+    return self;
+}
+
+- (ChooseYesOrNoView *) display
+{
+    UIView *chooseView = [[UIView alloc]initWithFrame: CGRectMake(50,50,200,100)];
+    [self addSubview:chooseView];
+    UILabel *pleaseChooseLabel = [[UILabel alloc]initWithFrame: CGRectMake(0,0,260,20)];
+    pleaseChooseLabel.text = @"Please choose Yes or No";
+    [chooseView addSubview:pleaseChooseLabel];
+    
+    UIButton *yesButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    yesButton.tag = 1;
+    [yesButton addTarget:self
+                  action:@selector(buttonTapped:)
+        forControlEvents:UIControlEventTouchDown];
+    [yesButton setTitle:@"Yes" forState:UIControlStateNormal];
+    yesButton.frame = CGRectMake(50, 60, 60, 40);
+    [self addSubview:yesButton];
+    
+    UIButton *noButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    noButton.tag = 0;
+    [noButton addTarget:self
+                 action:@selector(buttonTapped:)
+       forControlEvents:UIControlEventTouchDown];
+    [noButton setTitle:@"No" forState:UIControlStateNormal];
+    noButton.frame = CGRectMake(160, 60, 60, 40);
+    [self addSubview:noButton];
+    
+    return self;
+}
+
+- (void) buttonTapped: (UIButton*) sender
+{
+    BOOL response;
+    if(sender.tag==1) response = YES;
+    else response = NO;
+    [self.delegate chooseYesOrNoResponse:response];
+}
+
+\end{lstlisting}
+
+\subsubsection{\co{MainViewController.m}}
+\begin{lstlisting}
+MainViewController.m
+@implementation MainViewController
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+	// Do any additional setup after loading the view, typically from a nib.
+    self.view.backgroundColor = [UIColor grayColor];
+    ChooseYesOrNoView *chooseYesOrNoView = [[ChooseYesOrNoView alloc]
+                             initWithFrame:CGRectMake(30,160,260,110)];
+    chooseYesOrNoView.delegate = self;
+    chooseYesOrNoView.backgroundColor = [UIColor whiteColor];
+    chooseYesOrNoView = [chooseYesOrNoView display];
+    [self.view addSubview:chooseYesOrNoView];
+    
+}
+
+
+- (void) chooseYesOrNoResponse:(BOOL)response
+{
+    if(response) {
+        NSLog(@"YES was chosen");
+    }
+    else {
+        NSLog(@"NO was chosen");
+    }
+}
+
+\end{lstlisting}
+
+\section{Blocks}
+\subsection{Definition}
+Here's an example of calling a method that takes a block as an argument.
+\begin{lstlisting}
+[aDictionary enumerateKeysAndObjectsUsingBlock:^(id key, id value, BOOL *stop) {
+    NSLog("@value for key %@ is %@", key, value);
+    if ([@ENOUGH isEqualToString:key]) {
+*stop = YES; }
+}];
+\end{lstlisting}
+Blocks start with the magical character caret 
+\begin{lstlisting}
+^
+\end{lstlisting}
+Then (optional) return type, then (optional) arguments in parentheses, then $\{$, then code, then $\}$.
+\subsection{Creating a type for a variable that can hold a block}
+Blocks are kind of like objects with an unusual syntax for declaring variables that hold them. Usually if we are going to store a block in a variable, we typedef a type for that variable, 
+\begin{lstlisting}
+typedef double (^unary_operation_t)(double op);
+\end{lstlisting}
+This declares a block which takes a double as its only argument and returns a double. Then we could declare a variable, square, of this type and give it a value
+\begin{lstlisting}
+unary_operation_t square;
+square = ^(double operand) { // the value of the square variable is a block
+    return operand * operand;
+}
+\end{lstlisting}
+And then use the variable square like this ...
+\begin{lstlisting}
+double squareOfFive = square(5.0); // squareOfFive would have the value 25.0 after this
+\end{lstlisting}
+(It is not mandatory to typedef, for example, the following is also a legal way to create square ...)
+\begin{lstlisting}
+double (^square)(double op) = ^(double op) { return op * op; };
+\end{lstlisting}
+
+\subsection{Example of block}
+\subsubsection{ChooseYesOrNoView.h}
+\begin{lstlisting}
+ChooseYesOrNoView.h
+#import 
+typedef void (^ChooseYesOrNoCallbackBlock) (BOOL);
+@interface ChooseYesOrNoView : UIView
+@property (nonatomic, strong) ChooseYesOrNoCallbackBlock callbackBlock;
+- (ChooseYesOrNoView *) displayWithCallback:(ChooseYesOrNoCallbackBlock) block;
+@end
+\end{lstlisting}
+
+\subsubsection{ChooseYesOrNoView.m}
+\begin{lstlisting}
+ChooseYesOrNoView.m
+@implementation ChooseYesOrNoView
+
+- (id)initWithFrame:(CGRect)frame
+{
+    self = [super initWithFrame:frame];
+    if (self) {
+        // Initialization code
+    }
+    return self;
+}
+
+- (ChooseYesOrNoView *) displayWithCallback:(ChooseYesOrNoCallbackBlock)block
+{
+    self.callbackBlock = block;
+    UILabel *pleaseChooseLabel = [[UILabel alloc]initWithFrame: CGRectMake(0,20,260,20)];
+    pleaseChooseLabel.text = @"Please choose Yes or No";
+    [self addSubview:pleaseChooseLabel];
+    
+    UIButton *yesButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    yesButton.tag = 1;
+    [yesButton addTarget:self
+                  action:@selector(buttonTapped:)
+        forControlEvents:UIControlEventTouchDown];
+    [yesButton setTitle:@"Yes" forState:UIControlStateNormal];
+    yesButton.frame = CGRectMake(50, 60, 60, 40);
+    [self addSubview:yesButton];
+    
+    UIButton *noButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+    noButton.tag = 0;
+    [noButton addTarget:self
+                 action:@selector(buttonTapped:)
+       forControlEvents:UIControlEventTouchDown];
+    [noButton setTitle:@"No" forState:UIControlStateNormal];
+    noButton.frame = CGRectMake(160, 60, 60, 40);
+    [self addSubview:noButton];
+    
+    return self;
+}
+- (void) buttonTapped: (UIButton*) sender
+{
+    BOOL response;
+    if(sender.tag==1) response = YES;
+    else response = NO;
+    self.callbackBlock(response);
+}
+
+\end{lstlisting}
+\subsubsection{MainViewController.m}
+\begin{lstlisting}
+MainViewController.m
+@implementation MainViewController
+
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+	// Do any additional setup after loading the view, typically from a nib.
+    self.view.backgroundColor = [UIColor grayColor];
+    ChooseYesOrNoView *chooseYesOrNoView = [[ChooseYesOrNoView alloc]
+                           initWithFrame:CGRectMake(30,160,260,110)];
+    chooseYesOrNoView.backgroundColor = [UIColor whiteColor];
+    chooseYesOrNoView = [chooseYesOrNoView displayWithCallback:^(BOOL response)
+                         {
+                             if(response) {
+                                 NSLog(@"YES was chosen");
+                             }
+                             else {
+                                 NSLog(@"NO was chosen");
+                             }
+                         }];
+    [self.view addSubview:chooseYesOrNoView];
+}
+
+\end{lstlisting}
+\end{document}

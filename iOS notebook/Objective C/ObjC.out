@@ -1,0 +1,32 @@
+\BOOKMARK [1][-]{section.1}{Introspections}{}% 1
+\BOOKMARK [2][-]{subsection.1.1}{Selectors}{section.1}% 2
+\BOOKMARK [1][-]{section.2}{UIFonts}{}% 3
+\BOOKMARK [1][-]{section.3}{NSAttributedString}{}% 4
+\BOOKMARK [1][-]{section.4}{UITextView}{}% 5
+\BOOKMARK [1][-]{section.5}{View Controller Lifecycle}{}% 6
+\BOOKMARK [2][-]{subsection.5.1}{viewDidLoad}{section.5}% 7
+\BOOKMARK [2][-]{subsection.5.2}{viewWillAppear}{section.5}% 8
+\BOOKMARK [2][-]{subsection.5.3}{viewWillDisappear}{section.5}% 9
+\BOOKMARK [2][-]{subsection.5.4}{awakeFromNib}{section.5}% 10
+\BOOKMARK [1][-]{section.6}{NSNotification}{}% 11
+\BOOKMARK [1][-]{section.7}{UINavigationController}{}% 12
+\BOOKMARK [1][-]{section.8}{Views}{}% 13
+\BOOKMARK [2][-]{subsection.8.1}{Initializing a UIVIew}{section.8}% 14
+\BOOKMARK [2][-]{subsection.8.2}{View coordinates}{section.8}% 15
+\BOOKMARK [2][-]{subsection.8.3}{Context}{section.8}% 16
+\BOOKMARK [1][-]{section.9}{UIImageView}{}% 17
+\BOOKMARK [1][-]{section.10}{UIGestureRecognizer}{}% 18
+\BOOKMARK [1][-]{section.11}{Protocols}{}% 19
+\BOOKMARK [2][-]{subsection.11.1}{Declaring a @protocol}{section.11}% 20
+\BOOKMARK [2][-]{subsection.11.2}{Where do @protocol declarations go}{section.11}% 21
+\BOOKMARK [2][-]{subsection.11.3}{Examples of protocol}{section.11}% 22
+\BOOKMARK [3][-]{subsubsection.11.3.1}{ChooseYesOrNoView.h}{subsection.11.3}% 23
+\BOOKMARK [3][-]{subsubsection.11.3.2}{ChooseYesOrNoView.m}{subsection.11.3}% 24
+\BOOKMARK [3][-]{subsubsection.11.3.3}{MainViewController.m}{subsection.11.3}% 25
+\BOOKMARK [1][-]{section.12}{Blocks}{}% 26
+\BOOKMARK [2][-]{subsection.12.1}{Definition}{section.12}% 27
+\BOOKMARK [2][-]{subsection.12.2}{Creating a type for a variable that can hold a block}{section.12}% 28
+\BOOKMARK [2][-]{subsection.12.3}{Example of block}{section.12}% 29
+\BOOKMARK [3][-]{subsubsection.12.3.1}{ChooseYesOrNoView.h}{subsection.12.3}% 30
+\BOOKMARK [3][-]{subsubsection.12.3.2}{ChooseYesOrNoView.m}{subsection.12.3}% 31
+\BOOKMARK [3][-]{subsubsection.12.3.3}{MainViewController.m}{subsection.12.3}% 32
